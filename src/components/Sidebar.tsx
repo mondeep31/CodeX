@@ -4,7 +4,7 @@ import { Folder, File, ChevronDown, ChevronRight } from "lucide-react";
 export const Sidebar = () => {
   const [expandedFolders, setExpandedFolders] = useState<
     Record<string, boolean>
-  >({ Project: true });
+  >({ Project: false });
 
   const toggleFolder = (folderName: string) => {
     setExpandedFolders((prev) => ({
