@@ -1,33 +1,18 @@
-import { Appbar } from "./components/Appbar";
-import { Sidebar } from "./components/Sidebar";
-import { CodeEditor } from "./components/Editor";
-import { CodeTerminal } from "./components/CodeTerminal";
-import VideoCall from "./components/VideoCall";
-import { ChatSec } from "./components/ChatSec";
+import { Route, Routes } from "react-router-dom";
+import Login from "./pages/Signin";
+import Signup from "./pages/Signup";
+import CodeEditorPage from "./pages/CodeEditorPage";
+import LandingPage from "./pages/LandingPage";
 
-export default function CollaborationUI() {
+const App = () => {
   return (
-    <div className="flex flex-col h-screen bg-[#1a1b26]">
-      {/* Navbar */}
-      <Appbar />
-
-      {/* Main content area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
-        <Sidebar />
-
-        {/* Middle Section */}
-        <div className="flex-1 flex flex-col bg-[#1a1b26]">
-          <CodeEditor />
-          <CodeTerminal />
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="w-80 bg-[#1a1b26] border-l border-[#2a2b36] flex flex-col">
-          <VideoCall />
-          <ChatSec />
-        </div>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/editor" element={<CodeEditorPage />} />
+      <Route path="/signin" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+    </Routes>
   );
-}
+};
+
+export default App;
