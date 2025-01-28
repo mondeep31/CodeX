@@ -2,10 +2,10 @@ import { Users, MessageCircle, Code2, AlertTriangle } from "lucide-react";
 
 const FeaturesSection = () => {
   return (
-    <div className="min-h-screen  text-white px-32 border-spacing-1">
+    <div className="min-h-screen text-white px-4 md:px-32 border-spacing-1">
       <div className="container mx-auto px-4 py-16 space-y-16">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl md:text-6xl font-bold">
+          <h1 className="text-3xl md:text-6xl font-bold">
             Powerful Features for Modern Development
           </h1>
           <p className="text-lg text-gray-400">
@@ -14,8 +14,8 @@ const FeaturesSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-4 border border-gray-600 rounded-lg p-8 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
             <div className="w-12 h-12 bg-blue-950 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-400" />
             </div>
@@ -27,7 +27,7 @@ const FeaturesSection = () => {
             </p>
           </div>
 
-          <div className="space-y-4 border border-gray-600 rounded-lg p-8 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
             <div className="w-12 h-12 bg-purple-950 rounded-lg flex items-center justify-center">
               <MessageCircle className="w-6 h-6 text-purple-400" />
             </div>
@@ -38,7 +38,7 @@ const FeaturesSection = () => {
             </p>
           </div>
 
-          <div className="space-y-4 border border-gray-600 rounded-lg p-8 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
             <div className="w-12 h-12 bg-green-950 rounded-lg flex items-center justify-center">
               <Code2 className="w-6 h-6 text-green-400" />
             </div>
@@ -49,7 +49,7 @@ const FeaturesSection = () => {
             </p>
           </div>
 
-          <div className="space-y-4 border border-gray-600 rounded-lg p-8 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
             <div className="w-12 h-12 bg-red-950 rounded-lg flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-red-400" />
             </div>
