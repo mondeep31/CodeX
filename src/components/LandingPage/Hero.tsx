@@ -1,6 +1,17 @@
 import { Button } from "../ui/button";
+import { RefObject } from "react";
 
-const Hero = () => {
+interface HeroProps {
+  roomRef: RefObject<HTMLDivElement>;
+}
+
+const Hero = ({ roomRef }: HeroProps) => {
+  const scrollToRoom = () => {
+    if (roomRef.current) {
+      roomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="relative">
       <h2 className="absolute top-0 left-4 text-white text-[32px] font-bold font-sans">
@@ -20,6 +31,7 @@ const Hero = () => {
         <Button
           size="lg"
           className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-md"
+          onClick={scrollToRoom}
         >
           Get Started
         </Button>

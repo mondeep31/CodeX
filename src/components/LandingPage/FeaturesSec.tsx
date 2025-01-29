@@ -15,7 +15,7 @@ const FeaturesSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl transition-colors">
             <div className="w-12 h-12 bg-blue-950 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-400" />
             </div>
@@ -27,7 +27,7 @@ const FeaturesSection = () => {
             </p>
           </div>
 
-          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl transition-colors">
             <div className="w-12 h-12 bg-purple-950 rounded-lg flex items-center justify-center">
               <MessageCircle className="w-6 h-6 text-purple-400" />
             </div>
@@ -38,7 +38,7 @@ const FeaturesSection = () => {
             </p>
           </div>
 
-          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl transition-colors">
             <div className="w-12 h-12 bg-green-950 rounded-lg flex items-center justify-center">
               <Code2 className="w-6 h-6 text-green-400" />
             </div>
@@ -49,7 +49,7 @@ const FeaturesSection = () => {
             </p>
           </div>
 
-          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl">
+          <div className="space-y-4 border border-gray-600 rounded-lg p-6 hover:border-sky-500 bg-[#1b1b1b] drop-shadow-2xl transition-colors">
             <div className="w-12 h-12 bg-red-950 rounded-lg flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-red-400" />
             </div>
