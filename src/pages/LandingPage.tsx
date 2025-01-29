@@ -3,6 +3,7 @@ import CodeSnippet from "@/components/LandingPage/CodeSnippet";
 
 import FeaturesSection from "@/components/LandingPage/FeaturesSec";
 import Footer from "@/components/LandingPage/Footer";
+import Room from "@/components/LandingPage/Room";
 
 export default function LandingPage() {
   return (
@@ -16,6 +17,7 @@ export default function LandingPage() {
         {/* <FeatureCards /> */}
         {/* Feature Section */}
         <FeaturesSection />
+        <Room />
       </main>
       <Footer />
     </div>
