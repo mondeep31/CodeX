@@ -4,7 +4,7 @@ import OutputBox from "@/components/CodeEditor/OutputBox";
 import RoomInfo from "@/components/CodeEditor/RoomInfo";
 import VideoChat from "@/components/CodeEditor/VideoChat";
 
-export default function CollaborativeEditor() {
+export default function EditorPage() {
   return (
     <div className="h-screen flex flex-col bg-[#1C1C1C] text-gray-300">
       <TopNav />
