@@ -1,23 +1,40 @@
-import { Editor } from "@monaco-editor/react";
-export const CodeEditor = () => {
+"use client";
+
+import Editor from "@monaco-editor/react";
+
+const defaultCode = `public class main{
+    public static void main(String args[]){
+        
+    }
+}`;
+
+export default function CodeEditor() {
   return (
-    <div className="flex-1">
+    <div className="flex-1 overflow-hidden">
       <Editor
         height="100%"
-        defaultLanguage="javascript"
-        defaultValue="// Start coding here
-function helloWorld() {
-  console.log('Hello, world!');
-}
-
-helloWorld();"
+        defaultLanguage="java"
+        defaultValue={defaultCode}
         theme="vs-dark"
         options={{
-          minimap: { enabled: false },
           fontSize: 14,
-          padding: { top: 20 },
+          lineHeight: 21,
+          minimap: { enabled: false },
+          scrollbar: {
+            vertical: "visible",
+            horizontal: "visible",
+            useShadows: false,
+            verticalScrollbarSize: 10,
+            horizontalScrollbarSize: 10,
+          },
+          padding: { top: 16 },
+          lineNumbers: "on",
+          glyphMargin: false,
+          folding: false,
+          lineDecorationsWidth: 15,
+          lineNumbersMinChars: 3,
         }}
       />
     </div>
   );
-};
+}

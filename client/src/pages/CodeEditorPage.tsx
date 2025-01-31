@@ -1,32 +1,20 @@
-import { Appbar } from "../components/CodeEditor/Appbar";
-import { Sidebar } from "../components/CodeEditor/Sidebar";
-import { CodeEditor } from "../components/CodeEditor/Editor";
-import { CodeTerminal } from "../components/CodeEditor/CodeTerminal";
-import VideoCall from "../components/CodeEditor/VideoCall";
-import { ChatSec } from "../components/CodeEditor/ChatSec";
+import TopNav from "@/components/CodeEditor/Appbar";
+import Editor from "@/components/CodeEditor/Editor";
+import OutputBox from "@/components/CodeEditor/OutputBox";
+import RoomInfo from "@/components/CodeEditor/RoomInfo";
+import VideoChat from "@/components/CodeEditor/VideoChat";
 
-export default function CodeEditorPage() {
+export default function CollaborativeEditor() {
   return (
-    <div className="flex flex-col h-screen bg-[#1a1b26]">
-      {/* Navbar */}
-      <Appbar />
-
-      {/* Main content area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
-        <Sidebar />
-
-        {/* Middle Section */}
-        <div className="flex-1 flex flex-col bg-[#1a1b26]">
-          <CodeEditor />
-          <CodeTerminal />
+    <div className="h-screen flex flex-col bg-[#1C1C1C] text-gray-300">
+      <TopNav />
+      <RoomInfo />
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col">
+          <Editor />
+          <OutputBox />
         </div>
-
-        {/* Right Sidebar */}
-        <div className="w-80 bg-[#1a1b26] border-l border-[#2a2b36] flex flex-col">
-          <VideoCall />
-          <ChatSec />
-        </div>
+        <VideoChat />
       </div>
     </div>
   );
