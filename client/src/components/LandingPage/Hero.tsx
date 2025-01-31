@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { RefObject } from "react";
 
@@ -6,10 +7,15 @@ interface HeroProps {
 }
 
 const Hero = ({ roomRef }: HeroProps) => {
+  const navigate = useNavigate();
   const scrollToRoom = () => {
     if (roomRef.current) {
       roomRef.current.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  const onClickHandler = () => {
+    navigate("/editor");
   };
 
   return (
@@ -31,7 +37,8 @@ const Hero = ({ roomRef }: HeroProps) => {
         <Button
           size="lg"
           className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-md"
-          onClick={scrollToRoom}
+          // onClick={scrollToRoom}
+          onClick={onClickHandler}
         >
           Get Started
         </Button>
