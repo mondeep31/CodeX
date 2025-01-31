@@ -31,7 +31,7 @@ export default function CodeEditor() {
           lineNumbers: "on",
           glyphMargin: false,
           folding: false,
-          lineDecorationsWidth: 15,
+          lineDecorationsWidth: 10,
           lineNumbersMinChars: 3,
         }}
       />
