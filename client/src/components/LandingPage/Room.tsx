@@ -10,17 +10,39 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { v4 as uuidV4 } from "uuid";
+
+import axios from "axios";
 
 const Room = forwardRef<HTMLDivElement>((_, ref) => {
   const [roomName, setRoomName] = useState("");
+  const [userName, setUserName] = useState("");
   const [roomId, setRoomId] = useState("");
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
 
-  const handleCreateRoom = (e: React.FormEvent) => {
+  const handleRoomCreation = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = uuidV4();
-    setRoomId(id);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/rooms/create-room`
+      );
+      const id = response.data.roomID;
+      setRoomId(id);
+    } catch (err) {
+      console.log("Error creating room: ", err);
+    }
+  };
+
+  const handleCreateDialogClose = () => {
+    setRoomId("");
+    setRoomName("");
+    setUserName("");
+  };
+
+  const handleJoinDialogClose = () => {
+    setRoomId("");
+    setUserName("");
   };
 
   const handleJoinRoom = (e: React.FormEvent) => {
@@ -35,7 +57,15 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
           Choose Your Room Type
         </h1>
 
-        <Dialog>
+        <Dialog
+          open={createDialogOpen}
+          onOpenChange={(isOpen) => {
+            setCreateDialogOpen(isOpen);
+            if (!isOpen) {
+              handleCreateDialogClose();
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <button className="w-full p-6 rounded-lg bg-[#1b1b1b] border border-gray-600 hover:bg-gray-800 hover:border-sky-500 transition-colors drop-shadow-2xl">
               <div className="flex items-center justify-between">
@@ -55,7 +85,7 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
             <DialogHeader>
               <DialogTitle>Create New Room</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleCreateRoom} className="space-y-6 ">
+            <form className="space-y-6 ">
               <div className="space-y-2">
                 <Label htmlFor="roomName">Room Name</Label>
                 <Input
@@ -66,11 +96,39 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
                   required
                   className="bg-[#1b1b1b] border-gray-700"
                 />
+                <Label htmlFor="roomName">Your name</Label>
+                <Input
+                  id="userName"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                  className="bg-[#1b1b1b] border-gray-700"
+                />
+                <Label htmlFor="roomName">Room ID</Label>
+                <Input
+                  id="roomName"
+                  value={roomId}
+                  onChange={(e) => setRoomId(e.target.value)}
+                  placeholder="Enter room ID"
+                  required
+                  className="bg-[#1b1b1b] border-gray-700"
+                />
+                <p>
+                  <a
+                    className="rounded-xs text-blue-600 hover:underline"
+                    onClick={handleRoomCreation}
+                    role="button"
+                    type="button"
+                  >
+                    Click here{" "}
+                  </a>
+                  &nbsp;to generate room ID
+                </p>
               </div>
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleCreateRoom}
               >
                 Create Room
               </Button>
@@ -78,7 +136,15 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
           </DialogContent>
         </Dialog>
 
-        <Dialog>
+        <Dialog
+          open={joinDialogOpen}
+          onOpenChange={(isOpen) => {
+            setJoinDialogOpen(isOpen);
+            if (!isOpen) {
+              handleJoinDialogClose();
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <button className="w-full p-6 rounded-lg border border-gray-600 bg-[#1b1b1b] hover:bg-gray-800 hover:border-sky-500 transition-colors drop-shadow-2xl">
               <div className="flex items-center justify-between">
@@ -108,6 +174,15 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
                   placeholder="Enter room ID"
                   required
                   className="bg-[#1b1b1b] border-gray-700 text-white"
+                />
+                <Label htmlFor="roomName">Your name</Label>
+                <Input
+                  id="userName"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                  className="bg-[#1b1b1b] border-gray-700"
                 />
               </div>
               <Button

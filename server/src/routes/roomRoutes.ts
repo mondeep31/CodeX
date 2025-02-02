@@ -3,7 +3,7 @@ import {v4 as uuidv4} from 'uuid';
 
 const roomRouter = express.Router();
 
-roomRouter.post('/create-room', (req,res) => {
+roomRouter.post('/create-room', (req, res) => {
     const roomID = uuidv4();
     console.log(roomID)
     res.status(201).json({
@@ -12,7 +12,7 @@ roomRouter.post('/create-room', (req,res) => {
 })
 
 roomRouter.post('/join-room', (req,res) => {
-    
+
 })
 
 export default roomRouter;
