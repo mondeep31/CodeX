@@ -12,7 +12,7 @@ const App = () => {
       <Route path="/editor" element={<EditorPage />} />
       <Route path="create" element={<CreateRoom />} />
       <Route path="join" element={<JoinRoom />} />
-      {/* <Route path="room/:roomId" element={<Room />} /> */}
+      <Route path="editor/:roomId" element={<EditorPage />} />
     </Routes>
   );
 };

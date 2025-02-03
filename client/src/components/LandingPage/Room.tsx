@@ -12,16 +12,19 @@ import {
 } from "@/components/ui/dialog";
 
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Room = forwardRef<HTMLDivElement>((_, ref) => {
   const [roomName, setRoomName] = useState("");
   const [userName, setUserName] = useState("");
   const [roomId, setRoomId] = useState("");
-  const [activeRoom, setActiveRoom] = useState<string | null>(null);
+  // const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
 
-  const handleRoomCreation = async (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleRoomIdCreation = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await axios.post(
@@ -34,6 +37,30 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
     }
   };
 
+  const handleRoomCreation = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!roomId) {
+      alert("Please generate a room ID first");
+      return;
+    }
+
+    navigate(`/editor/${roomId}`);
+  };
+
+  const handleJoinRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post("/api/rooms/join-room", { roomId });
+      if (response.status === 200) {
+        navigate(`/editor/${roomId}`);
+      }
+    } catch (err) {
+      console.log("Error joining room", err);
+    }
+  };
+
   const handleCreateDialogClose = () => {
     setRoomId("");
     setRoomName("");
@@ -43,11 +70,6 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
   const handleJoinDialogClose = () => {
     setRoomId("");
     setUserName("");
-  };
-
-  const handleJoinRoom = (e: React.FormEvent) => {
-    e.preventDefault();
-    setActiveRoom(roomId);
   };
 
   return (
@@ -117,7 +139,7 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
                 <p>
                   <a
                     className="rounded-xs text-blue-600 hover:underline"
-                    onClick={handleRoomCreation}
+                    onClick={handleRoomIdCreation}
                     role="button"
                     type="button"
                   >
@@ -129,6 +151,7 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleRoomCreation}
               >
                 Create Room
               </Button>
@@ -188,6 +211,7 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleJoinRoom}
               >
                 Join Room
               </Button>
