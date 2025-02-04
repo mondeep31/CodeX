@@ -1,5 +1,5 @@
 import { Plus, Users } from "lucide-react";
-import React, { useState, forwardRef } from "react";
+import { useState, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -21,43 +20,82 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
   // const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
-
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleRoomIdCreation = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/rooms/create-room`
+        `${import.meta.env.VITE_BACKEND_URL}/api/rooms/create-room`,
+        { roomName }
       );
       const id = response.data.roomID;
       setRoomId(id);
     } catch (err) {
       console.log("Error creating room: ", err);
+      setError("Failed to create room. Please try again.");
     }
   };
 
   const handleRoomCreation = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     if (!roomId) {
       alert("Please generate a room ID first");
       return;
     }
+    if (!userName.trim()) {
+      alert("Please enter your name");
+      return;
+    }
 
-    navigate(`/editor/${roomId}`);
+    try {
+      navigate(`/editor/${roomId}`, {
+        state: {
+          roomName,
+          userName,
+          isHost: true,
+        },
+      });
+    } catch (err) {
+      console.error("Error navigating to room", err);
+      setError("Failed to enter room. Please try again");
+    }
   };
 
   const handleJoinRoom = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    if (!roomId) {
+      alert("Please enter a valid Room ID.");
+      return;
+    }
+    if (!userName.trim()) {
+      alert("Please enter your name.");
+      return;
+    }
 
     try {
-      const response = await axios.post("/api/rooms/join-room", { roomId });
-      if (response.status === 200) {
-        navigate(`/editor/${roomId}`);
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/rooms/join-room`,
+        { roomId }
+      );
+      if (response.data.success) {
+        navigate(`/editor/${roomId}`, {
+          state: {
+            roomName,
+            userName,
+            isHost: false,
+          },
+        });
       }
     } catch (err) {
-      console.log("Error joining room", err);
+      console.error("Error joining room", err);
+      setError("Failed to join room. Please check the Room ID and try again");
     }
   };
 
@@ -118,7 +156,7 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
                   required
                   className="bg-[#1b1b1b] border-gray-700"
                 />
-                <Label htmlFor="roomName">Your name</Label>
+                <Label htmlFor="userName">Your name</Label>
                 <Input
                   id="userName"
                   value={userName}
@@ -127,7 +165,7 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
                   required
                   className="bg-[#1b1b1b] border-gray-700"
                 />
-                <Label htmlFor="roomName">Room ID</Label>
+                <Label htmlFor="roomId">Room ID</Label>
                 <Input
                   id="roomName"
                   value={roomId}
@@ -155,6 +193,11 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
               >
                 Create Room
               </Button>
+              {error && (
+                <div className="text-red-500 text-sm mt-2 text-center">
+                  {error}
+                </div>
+              )}
             </form>
           </DialogContent>
         </Dialog>
@@ -198,7 +241,7 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
                   required
                   className="bg-[#1b1b1b] border-gray-700 text-white"
                 />
-                <Label htmlFor="roomName">Your name</Label>
+                <Label htmlFor="userName">Your name</Label>
                 <Input
                   id="userName"
                   value={userName}
@@ -215,6 +258,11 @@ const Room = forwardRef<HTMLDivElement>((_, ref) => {
               >
                 Join Room
               </Button>
+              {error && (
+                <div className="text-red-500 text-sm mt-2 text-center">
+                  {error}
+                </div>
+              )}
             </form>
           </DialogContent>
         </Dialog>
