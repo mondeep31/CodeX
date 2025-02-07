@@ -3,7 +3,7 @@ import { Users, MessageCircle, Code2, AlertTriangle } from "lucide-react";
 const FeaturesSection = () => {
   return (
     <div className="min-h-screen text-white px-4 md:px-32 border-spacing-1">
-      <div className="container mx-auto px-4 py-16 space-y-16">
+      <div className="container mx-auto px-4 py-16 space-y-64">
         <div className="text-center space-y-4">
           <h1 className="text-3xl md:text-6xl font-bold">
             Powerful Features for Modern Development
