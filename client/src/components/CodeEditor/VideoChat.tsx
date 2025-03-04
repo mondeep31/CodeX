@@ -1,27 +1,22 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Video, VideoOff, Mic, MicOff, Send } from "lucide-react";
+import ChatComponent from "./ChatComponent";
+import VideoCallComponent from "./VideoComponent";
 
-export default function VideoChat() {
-  const [videoOn, setVideoOn] = useState(true);
-  const [audioOn, setAudioOn] = useState(true);
-  const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
-    []
-  );
-  const [newMessage, setNewMessage] = useState("");
+interface VideoChatProps {
+  roomId: string;
+  userName: string;
+}
 
-  const sendMessage = () => {
-    if (newMessage.trim()) {
-      setMessages([...messages, { sender: "You", text: newMessage }]);
-      setNewMessage("");
-    }
-  };
-
+export default function VideoChat({ roomId, userName }: VideoChatProps) {
   return (
     <div className="w-80 border-l border-[#2A2A2A] flex flex-col">
-      <div className="pt-4 px-2">
+      <VideoCallComponent roomId={roomId} userName={userName} />
+      <ChatComponent roomId={roomId} userName={userName} />
+    </div>
+  );
+}
+
+{
+  /* <div className="pt-4 px-2">
         <div className="aspect-video bg-[#2A2A2A] mb-2 rounded-lg flex items-center justify-center overflow-hidden">
           {videoOn ? (
             <video className="w-full h-full object-cover" />
@@ -72,9 +67,12 @@ export default function VideoChat() {
             )}
           </Button>
         </div>
-      </div>
+      </div> 
 
-      <div className="flex-1 flex flex-col border-t border-[#2A2A2A]">
+// hehe
+
+{
+  /* <div className="flex-1 flex flex-col border-t border-[#2A2A2A]">
         <ScrollArea className="flex-1 p-4">
           {messages.map((message, index) => (
             <div key={index} className="mb-2">
@@ -101,7 +99,5 @@ export default function VideoChat() {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-    </div>
-  );
+      </div> */
 }
