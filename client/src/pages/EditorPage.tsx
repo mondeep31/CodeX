@@ -11,15 +11,21 @@ export default function EditorPage() {
   const { userName } = location.state || {};
 
   return (
-    <div className="h-screen flex flex-col bg-[#1C1C1C] text-gray-300">
+    <div className="h-screen flex flex-col bg-[#1C1C1C] text-gray-300 overflow-hidden">
       <TopNav />
       <RoomInfo />
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 flex flex-col">
-          <Editor />
-          <OutputBox />
+      <div className="flex-1 flex min-h-0 overflow-y-hidden">
+        <div className="flex-[3] flex flex-col min-w-0 overflow-y-hidden">
+          <div className="flex-[2] min-h-0 overflow-y-auto">
+            <Editor />
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <OutputBox />
+          </div>
         </div>
-        <VideoChat roomId={roomId!} userName={userName} />
+        <div className="flex-1 min-w-[300px] max-w-[400px] flex flex-col min-h-0 overflow-y-auto">
+          <VideoChat roomId={roomId!} userName={userName} />
+        </div>
       </div>
     </div>
   );

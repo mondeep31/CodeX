@@ -1,37 +1,16 @@
-
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
-
-interface User {
-  id: string;
-  name: string;
-}
-
-interface Room {
-  id: string;
-  name: string;
-  users: User[];
-  code: string;
-  language: string;
-}
-
-interface RoomData {
-  [roomId: string]: Room;
-}
+import { CORS_CONFIG } from "../config";
+import { RoomData } from "../types/types";
 
 const rooms: RoomData = {};
 
-const initializeSocket = (httpServer: HttpServer) => {
+const setupSocketController = (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-    },
+    cors: CORS_CONFIG
   });
 
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
-
     socket.on("join_room", ({ roomId, userName }) => {
       if (!rooms[roomId]) {
         rooms[roomId] = {
@@ -43,12 +22,15 @@ const initializeSocket = (httpServer: HttpServer) => {
         };
       }
 
-      const userExists = rooms[roomId].users.some((u) => u.id === socket.id);
-      if (userExists) return;
-
-      const user = { id: socket.id, name: userName };
-      rooms[roomId].users.push(user);
       socket.join(roomId);
+      // Notify other users about new user
+      socket.to(roomId).emit("user_joined", socket.id);
+      
+      const userExists = rooms[roomId].users.some((u) => u.id === socket.id);
+      if (!userExists) {
+        const user = { id: socket.id, name: userName };
+        rooms[roomId].users.push(user);
+      }
 
       // Send room info to all users
       io.to(roomId).emit("room_info", {
@@ -58,9 +40,46 @@ const initializeSocket = (httpServer: HttpServer) => {
         participants: rooms[roomId].users.map((u) => u.name),
       });
 
+      // Notify all users in the room about the user names
+      const otherUsers = rooms[roomId].users.filter(u => u.id !== socket.id);
+      if (otherUsers.length > 0) {
+        // Send existing user's name to the new user
+        socket.emit("user_connected", { userName: otherUsers[0].name });
+        // Send new user's name to existing users
+        socket.to(roomId).emit("user_connected", { userName });
+      }
+
       // Send current code and language to the new user
       socket.emit("receive_code", rooms[roomId].code);
       socket.emit("language_changed", rooms[roomId].language);
+
+      socket.on("disconnect", () => {
+        socket.to(roomId).emit("user_disconnected");
+      });
+    });
+
+    // Handle offer signal
+    socket.on("offer", ({ offer, roomId }) => {
+      socket.to(roomId).emit("offer", { 
+        offer, 
+        from: socket.id 
+      });
+    });
+
+    // Handle answer signal
+    socket.on("answer", ({ answer, roomId }) => {
+      socket.to(roomId).emit("answer", { 
+        answer, 
+        from: socket.id 
+      });
+    });
+
+    // Handle ICE candidate
+    socket.on("ice-candidate", ({ candidate, roomId }) => {
+      socket.to(roomId).emit("ice-candidate", { 
+        candidate, 
+        from: socket.id 
+      });
     });
 
     socket.on("send_code", ({ roomId, code }) => {
@@ -77,6 +96,14 @@ const initializeSocket = (httpServer: HttpServer) => {
       }
     });
 
+    socket.on("send_message", ({ roomId, userName, message }) => {
+      io.to(roomId).emit("receive_message", {
+        userName,
+        message,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
     socket.on("disconnect", () => {
       for (const roomId in rooms) {
         const room = rooms[roomId];
@@ -84,12 +111,7 @@ const initializeSocket = (httpServer: HttpServer) => {
 
         if (userIndex !== -1) {
           room.users.splice(userIndex, 1);
-
-          // Notify other users
-          io.to(roomId).emit("user_left", {
-            userId: socket.id,
-            roomUsers: room.users,
-          });
+          io.to(roomId).emit("user_disconnected", socket.id);
 
           // Update room info
           io.to(roomId).emit("room_info", {
@@ -99,7 +121,6 @@ const initializeSocket = (httpServer: HttpServer) => {
             participants: room.users.map((u) => u.name),
           });
 
-          // Clean up empty rooms
           if (room.users.length === 0) {
             delete rooms[roomId];
           }
@@ -111,4 +132,4 @@ const initializeSocket = (httpServer: HttpServer) => {
   return io;
 };
 
-export default initializeSocket;
+export default setupSocketController;

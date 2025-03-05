@@ -7,9 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { useParams } from "react-router-dom";
 import socket from "@/socket";
+
 const languages = ["java", "python", "javascript", "cpp", "csharp"];
 
 export default function TopNav() {
@@ -22,19 +22,40 @@ export default function TopNav() {
       return;
     }
 
-    socket.on("user_joined", ({ roomUsers }) => {
-      setUsers(roomUsers);
-    });
-
-    socket.on("user_left", (userId) => {
-      setUsers((prev) => prev.filter((user) => user.id !== userId));
-    });
-
-    return () => {
-      socket.off("user_joined");
-      socket.off("user_left");
+    // Handle user joined event
+    const handleUserJoined = ({
+      roomUsers,
+    }: {
+      roomUsers: { id: string; name: string }[];
+    }) => {
+      if (Array.isArray(roomUsers)) {
+        setUsers(roomUsers);
+      } else {
+        console.error("Invalid roomUsers data:", roomUsers);
+        setUsers([]); // Fallback to empty array
+      }
     };
-  }, []);
+
+    // Handle user left event
+    const handleUserLeft = (userId: string) => {
+      setUsers((prev) => {
+        if (Array.isArray(prev)) {
+          return prev.filter((user) => user.id !== userId);
+        }
+        return []; // Fallback to empty array
+      });
+    };
+
+    // Listen for socket events
+    socket.on("room_users_updated", handleUserJoined);
+    socket.on("user_left", handleUserLeft);
+
+    // Cleanup socket listeners
+    return () => {
+      socket.off("room_users_updated", handleUserJoined);
+      socket.off("user_left", handleUserLeft);
+    };
+  }, [roomId]);
 
   return (
     <div className="h-12 border-b border-[#2A2A2A] flex items-center px-4">
@@ -45,6 +66,7 @@ export default function TopNav() {
           Beta
         </div>
       </div>
+
       {/* Language */}
       <div className="flex-1 flex justify-center items-center space-x-2">
         <Select value={language} onValueChange={setLanguage}>
@@ -71,7 +93,7 @@ export default function TopNav() {
 
       {/* Connected Users */}
       <div className="flex space-x-2">
-        {users.map((user) => (
+        {Array.isArray(users) && users.map((user) => (
           <div
             key={user.id}
             className="w-8 h-8 flex items-center justify-center bg-green-700 text-white rounded-full text-sm font-bold"

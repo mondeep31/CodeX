@@ -7,6 +7,7 @@ export default function CodeEditor() {
   const { roomId } = useParams();
   const location = useLocation();
   const { userName } = location.state || {};
+
   const [language, setLanguage] = useState("java");
   const [code, setCode] = useState(`public class main{
     public static void main(String args[]){
@@ -44,9 +45,10 @@ export default function CodeEditor() {
   };
 
   return (
-    <div className="flex-1 overflow-hidden">
+    <div className="h-full w-full">
       <Editor
         height="100%"
+        width="100%"
         language={language}
         value={code}
         onChange={handleChange}
@@ -68,6 +70,7 @@ export default function CodeEditor() {
           folding: false,
           lineDecorationsWidth: 10,
           lineNumbersMinChars: 3,
+          automaticLayout: true,
         }}
       />
     </div>
