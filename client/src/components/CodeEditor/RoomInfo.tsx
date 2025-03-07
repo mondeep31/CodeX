@@ -37,6 +37,7 @@ export default function RoomInfo() {
     return () => {
       socket.off("room_info", handleRoomInfo);
     };
+
   }, [roomId, userName]);
 
   return (

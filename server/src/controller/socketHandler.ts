@@ -18,12 +18,11 @@ const setupSocketController = (httpServer: HttpServer) => {
           name: "Coding Session",
           users: [],
           code: "",
-          language: "java",
+          language: "javascript", // Default language
         };
       }
 
       socket.join(roomId);
-      // Notify other users about new user
       socket.to(roomId).emit("user_joined", socket.id);
       
       const userExists = rooms[roomId].users.some((u) => u.id === socket.id);
@@ -43,9 +42,7 @@ const setupSocketController = (httpServer: HttpServer) => {
       // Notify all users in the room about the user names
       const otherUsers = rooms[roomId].users.filter(u => u.id !== socket.id);
       if (otherUsers.length > 0) {
-        // Send existing user's name to the new user
         socket.emit("user_connected", { userName: otherUsers[0].name });
-        // Send new user's name to existing users
         socket.to(roomId).emit("user_connected", { userName });
       }
 
@@ -58,30 +55,7 @@ const setupSocketController = (httpServer: HttpServer) => {
       });
     });
 
-    // Handle offer signal
-    socket.on("offer", ({ offer, roomId }) => {
-      socket.to(roomId).emit("offer", { 
-        offer, 
-        from: socket.id 
-      });
-    });
-
-    // Handle answer signal
-    socket.on("answer", ({ answer, roomId }) => {
-      socket.to(roomId).emit("answer", { 
-        answer, 
-        from: socket.id 
-      });
-    });
-
-    // Handle ICE candidate
-    socket.on("ice-candidate", ({ candidate, roomId }) => {
-      socket.to(roomId).emit("ice-candidate", { 
-        candidate, 
-        from: socket.id 
-      });
-    });
-
+    // Handle code updates
     socket.on("send_code", ({ roomId, code }) => {
       if (rooms[roomId]) {
         rooms[roomId].code = code;
@@ -89,6 +63,7 @@ const setupSocketController = (httpServer: HttpServer) => {
       }
     });
 
+    // Handle language changes
     socket.on("change_language", ({ roomId, language }) => {
       if (rooms[roomId]) {
         rooms[roomId].language = language;
@@ -96,6 +71,34 @@ const setupSocketController = (httpServer: HttpServer) => {
       }
     });
 
+    // Handle code execution results
+    socket.on("execution_result", ({ roomId, result, error }) => {
+      io.to(roomId).emit("execution_result", { result, error });
+    });
+
+    // Handle video call signaling
+    socket.on("offer", ({ offer, roomId }) => {
+      socket.to(roomId).emit("offer", { 
+        offer, 
+        from: socket.id 
+      });
+    });
+
+    socket.on("answer", ({ answer, roomId }) => {
+      socket.to(roomId).emit("answer", { 
+        answer, 
+        from: socket.id 
+      });
+    });
+
+    socket.on("ice-candidate", ({ candidate, roomId }) => {
+      socket.to(roomId).emit("ice-candidate", { 
+        candidate, 
+        from: socket.id 
+      });
+    });
+
+    // Handle chat messages
     socket.on("send_message", ({ roomId, userName, message }) => {
       io.to(roomId).emit("receive_message", {
         userName,
@@ -104,6 +107,7 @@ const setupSocketController = (httpServer: HttpServer) => {
       });
     });
 
+    // Handle disconnection
     socket.on("disconnect", () => {
       for (const roomId in rooms) {
         const room = rooms[roomId];
@@ -113,7 +117,6 @@ const setupSocketController = (httpServer: HttpServer) => {
           room.users.splice(userIndex, 1);
           io.to(roomId).emit("user_disconnected", socket.id);
 
-          // Update room info
           io.to(roomId).emit("room_info", {
             id: roomId,
             name: room.name,

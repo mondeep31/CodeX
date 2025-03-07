@@ -1,78 +1,119 @@
-import Editor from "@monaco-editor/react";
-import { useParams, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Editor } from "@monaco-editor/react";
 import socket from "@/socket";
+import { debounce } from "lodash";
 
-export default function CodeEditor() {
-  const { roomId } = useParams();
-  const location = useLocation();
-  const { userName } = location.state || {};
+interface CodeEditorProps {
+  roomId?: string;
+  language: string;
+  onLanguageChange: (language: string) => void;
+}
 
-  const [language, setLanguage] = useState("java");
-  const [code, setCode] = useState(`public class main{
-    public static void main(String args[]){
-      //Start Coding ..
+const TEMPLATE_CODES: Record<string, string> = {
+  java: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
     }
-  }`);
+}`,
+  cpp: `#include <iostream>
+using namespace std;
 
+int main() {
+    cout << "Hello, World!" << endl;
+    return 0;
+}`,
+  c: `#include <stdio.h>
+
+int main() {
+    printf("Hello, World!\\n");
+    return 0;
+}`,
+  python: `print("Hello, World!")`,
+  javascript: `console.log("Hello, World!");`
+};
+
+const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
+  const editorRef = useRef<any>(null);
+  const [editorValue, setEditorValue] = useState(TEMPLATE_CODES[language]);
+  const isUpdating = useRef(false);
+
+  // Handle code changes from socket
   useEffect(() => {
-    if (!roomId || !userName) return;
+    if (!roomId) return;
 
-    // Emit join_room only once
-    socket.emit("join_room", { roomId, userName });
-
-    // Listen for code updates
-    socket.on("receive_code", (newCode) => {
-      setCode(newCode);
-    });
-
-    // Listen for language changes
-    socket.on("language_changed", (newLanguage) => {
-      setLanguage(newLanguage);
-    });
-
-    // Cleanup
-    return () => {
-      socket.off("receive_code");
-      socket.off("language_changed");
+    const handleCodeChange = (newCode: string) => {
+      if (!isUpdating.current) {
+        isUpdating.current = true;
+        setEditorValue(newCode);
+        setTimeout(() => {
+          isUpdating.current = false;
+        }, 100);
+      }
     };
-  }, [roomId, userName]);
 
-  const handleChange = (newValue: string | undefined) => {
-    if (!newValue) return;
-    setCode(newValue);
-    socket.emit("send_code", { roomId, code: newValue });
+    socket.on("receive_code", handleCodeChange);
+    
+    // Return cleanup function
+    return () => {
+      socket.off("receive_code", handleCodeChange);
+    };
+  }, [roomId]);
+
+  // Handle language changes
+  useEffect(() => {
+    if (!isUpdating.current) {
+      isUpdating.current = true;
+      const newCode = TEMPLATE_CODES[language];
+      setEditorValue(newCode);
+      
+      if (roomId) {
+        socket.emit("send_code", { roomId, code: newCode });
+      }
+
+      setTimeout(() => {
+        isUpdating.current = false;
+      }, 100);
+    }
+  }, [language, roomId]);
+
+  const handleEditorDidMount = (editor: any) => {
+    window.editor = editor;
+    editorRef.current = editor;
   };
 
+  const handleChange = debounce((newValue: string | undefined) => {
+    if (newValue !== undefined && roomId && !isUpdating.current) {
+      isUpdating.current = true;
+      setEditorValue(newValue);
+      socket.emit("send_code", { roomId, code: newValue });
+      setTimeout(() => {
+        isUpdating.current = false;
+      }, 100);
+    }
+  }, 300);
+
   return (
-    <div className="h-full w-full">
-      <Editor
-        height="100%"
-        width="100%"
-        language={language}
-        value={code}
-        onChange={handleChange}
-        theme="vs-dark"
-        options={{
-          fontSize: 14,
-          lineHeight: 21,
-          minimap: { enabled: false },
-          scrollbar: {
-            vertical: "visible",
-            horizontal: "visible",
-            useShadows: false,
-            verticalScrollbarSize: 10,
-            horizontalScrollbarSize: 10,
-          },
-          padding: { top: 16 },
-          lineNumbers: "on",
-          glyphMargin: false,
-          folding: false,
-          lineDecorationsWidth: 10,
-          lineNumbersMinChars: 3,
-          automaticLayout: true,
-        }}
-      />
+    <div className="h-full flex flex-col">
+      <div className="flex-1 min-h-0">
+        <Editor
+          height="100%"
+          defaultLanguage="javascript"
+          language={language}
+          value={editorValue}
+          onChange={handleChange}
+          onMount={handleEditorDidMount}
+          theme="vs-dark"
+          options={{
+            minimap: { enabled: false },
+            fontSize: 14,
+            wordWrap: "on",
+            automaticLayout: true,
+            readOnly: isUpdating.current
+          }}
+        />
+      </div>
     </div>
   );
-}
+};
+
+export default CodeEditor;

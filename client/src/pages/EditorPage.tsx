@@ -1,30 +1,43 @@
+import { useState } from "react";
 import TopNav from "@/components/CodeEditor/Appbar";
 import Editor from "@/components/CodeEditor/Editor";
 import OutputBox from "@/components/CodeEditor/OutputBox";
-import RoomInfo from "@/components/CodeEditor/RoomInfo";
 import VideoChat from "@/components/CodeEditor/VideoChat";
-import { useLocation, useParams } from "react-router-dom";
+import RoomInfo from "@/components/CodeEditor/RoomInfo";
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function EditorPage() {
   const { roomId } = useParams();
-  const location = useLocation();
-  const { userName } = location.state || {};
+  const navigate = useNavigate();
+  const [language, setLanguage] = useState("javascript");
+  const userName = localStorage.getItem("userName") || "Anonymous";
+
+  if (!roomId) {
+    navigate("/");
+    return null;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-[#1C1C1C] text-gray-300 overflow-hidden">
-      <TopNav />
+      <TopNav language={language} onLanguageChange={setLanguage} />
       <RoomInfo />
-      <div className="flex-1 flex min-h-0 overflow-y-hidden">
-        <div className="flex-[3] flex flex-col min-w-0 overflow-y-hidden">
-          <div className="flex-[2] min-h-0 overflow-y-auto">
-            <Editor />
+      <div className="flex-1 flex">
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1">
+            <Editor 
+              roomId={roomId} 
+              language={language} 
+              onLanguageChange={setLanguage} 
+            />
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="h-40">
             <OutputBox />
           </div>
         </div>
-        <div className="flex-1 min-w-[300px] max-w-[400px] flex flex-col min-h-0 overflow-y-auto">
-          <VideoChat roomId={roomId!} userName={userName} />
+        <div className="w-80 bg-[#1C1C1C] border-l border-[#2A2A2A] flex flex-col">
+          <div className="flex-1">
+            <VideoChat roomId={roomId} userName={userName} />
+          </div>
         </div>
       </div>
     </div>
