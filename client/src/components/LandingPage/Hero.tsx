@@ -7,17 +7,11 @@ interface HeroProps {
 }
 
 const Hero = ({ roomRef }: HeroProps) => {
-  // const navigate = useNavigate();
   const scrollToRoom = () => {
     if (roomRef.current) {
       roomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
-
-  // const onClickHandler = () => {
-  //   navigate("/editor");
-  // };
-
   return (
     <div className="relative">
       <h2 className="absolute top-0 left-4 text-white text-[32px] font-bold font-sans">
@@ -38,7 +32,6 @@ const Hero = ({ roomRef }: HeroProps) => {
           size="lg"
           className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-md"
           onClick={scrollToRoom}
-          // onClick={onClickHandler}
         >
           Get Started
         </Button>

@@ -10,7 +10,6 @@ export default function CreateRoom() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically create a room on your backend
     const roomId = Math.random().toString(36).substr(2, 9);
     navigate(`/room/${roomId}`);
   };
