@@ -28,7 +28,7 @@ CodeX is a real-time collaborative coding platform that allows users to create a
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/codex.git
+   git clone https://github.com/mondeep31/codex.git
    cd codex
    ```
 
