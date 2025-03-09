@@ -9,7 +9,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 export default function EditorPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const [language, setLanguage] = useState("javascript");
+  const [language, setLanguage] = useState("java");
   const location = useLocation();
   const { userName } = location.state || {};
 

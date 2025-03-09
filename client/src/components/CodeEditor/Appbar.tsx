@@ -11,7 +11,7 @@ import { useParams } from "react-router-dom";
 import socket from "@/socket";
 import axios from "axios";
 
-const languages = ["java", "python", "javascript", "cpp", "c"];
+const languages = ["java", "python", "cpp", "c"];
 
 interface TopNavProps {
   language: string;

@@ -11,8 +11,7 @@ const LANGUAGE_IDS: Record<string, number> = {
   java: 4,
   cpp: 2,
   c: 1,
-  python: 25,
-  javascript: 102
+  python: 25
 };
 
 // Execute code

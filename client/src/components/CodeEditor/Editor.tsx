@@ -29,7 +29,6 @@ int main() {
     return 0;
 }`,
   python: `print("Hello, World!")`,
-  javascript: `console.log("Hello, World!");`
 };
 
 const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
@@ -52,7 +51,7 @@ const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
     };
 
     socket.on("receive_code", handleCodeChange);
-    
+
     // Return cleanup function
     return () => {
       socket.off("receive_code", handleCodeChange);
@@ -65,7 +64,7 @@ const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
       isUpdating.current = true;
       const newCode = TEMPLATE_CODES[language];
       setEditorValue(newCode);
-      
+
       if (roomId) {
         socket.emit("send_code", { roomId, code: newCode });
       }
@@ -97,7 +96,7 @@ const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
       <div className="flex-1 min-h-0">
         <Editor
           height="100%"
-          defaultLanguage="javascript"
+          defaultLanguage="java"
           language={language}
           value={editorValue}
           onChange={handleChange}
@@ -108,7 +107,7 @@ const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
             fontSize: 14,
             wordWrap: "on",
             automaticLayout: true,
-            readOnly: isUpdating.current
+            readOnly: isUpdating.current,
           }}
         />
       </div>

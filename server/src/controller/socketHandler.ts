@@ -24,7 +24,7 @@ const setupSocketController = (httpServer: HttpServer) => {
           name: "Coding Session",
           users: [],
           code: "",
-          language: "javascript", // Default language
+          language: "java", // Default language
         };
       }
       

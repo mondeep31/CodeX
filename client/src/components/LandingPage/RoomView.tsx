@@ -13,7 +13,7 @@ interface RoomViewProps {
 }
 
 export default function RoomView({ roomId, userName, onLeave }: RoomViewProps) {
-  const [language, setLanguage] = useState("javascript");
+  const [language, setLanguage] = useState("java");
 
   return (
     <div className="h-screen flex flex-col">
@@ -21,10 +21,10 @@ export default function RoomView({ roomId, userName, onLeave }: RoomViewProps) {
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
           <div className="flex-1">
-            <CodeEditor 
-              roomId={roomId} 
-              language={language} 
-              onLanguageChange={setLanguage} 
+            <CodeEditor
+              roomId={roomId}
+              language={language}
+              onLanguageChange={setLanguage}
             />
           </div>
           <div className="h-40">
@@ -39,11 +39,7 @@ export default function RoomView({ roomId, userName, onLeave }: RoomViewProps) {
             <ChatComponent roomId={roomId} userName={userName} />
           </div>
           <div className="p-4 border-t border-[#2A2A2A]">
-            <Button 
-              variant="outline" 
-              onClick={onLeave}
-              className="w-full"
-            >
+            <Button variant="outline" onClick={onLeave} className="w-full">
               Leave Room
             </Button>
           </div>
