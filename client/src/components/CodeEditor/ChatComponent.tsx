@@ -3,6 +3,7 @@ import socket from "../../socket";
 
 interface Message {
   userName: string;
+  userId?: string; // Add userId to identify sender
   message: string;
   timestamp: string;
 }
@@ -17,13 +18,30 @@ const ChatComponent = ({ roomId, userName }: ChatProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [mySocketId, setMySocketId] = useState<string>("");
 
   useEffect(() => {
+    // Listen for your own socket ID when joining the room
+    socket.on("room_info", (info: any) => {
+      // Assuming the socket ID is sent in the room info
+      setMySocketId(info.mySocketId); // Ensure this is set correctly
+    });
+
+    // Listen for incoming messages
     socket.on("receive_message", (message: Message) => {
+      console.log("Message received:", message);
+      // If this message has a userId and it's the first message we're seeing
+      // with our own name, save that ID so we can identify our own messages
+      if (message.userId && message.userName === userName && !mySocketId) {
+        setMySocketId(message.userId);
+      }
+
       setMessages((prevMessages) => [...prevMessages, message]);
+
       // Only auto-scroll if we're already near the bottom
       if (chatContainerRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+        const { scrollTop, scrollHeight, clientHeight } =
+          chatContainerRef.current;
         const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
         if (isNearBottom) {
           messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,41 +51,50 @@ const ChatComponent = ({ roomId, userName }: ChatProps) => {
 
     return () => {
       socket.off("receive_message");
+      socket.off("room_info");
     };
-  }, []);
+  }, [userName]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
 
-    socket.emit("send_message", {
+    const messageData = {
       roomId,
       userName,
       message: inputMessage.trim(),
-    });
+      userId: mySocketId, // Include userId to identify the sender
+    };
 
+    socket.emit("send_message", messageData);
     setInputMessage("");
     // Always scroll to bottom when sending a message
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const isOwnMessage = (msg: Message): boolean => {
+    return msg.userId === mySocketId; // Check if the message is from the current user
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0 bg-[#1C1C1C]">
-      <div 
+      <div
         ref={chatContainerRef}
         className="flex-1 min-h-0 overflow-y-auto px-2 py-1.5 space-y-1.5 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
       >
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`flex flex-col ${msg.userName === userName ? 'items-end' : 'items-start'}`}
+            className={`flex flex-col ${
+              isOwnMessage(msg) ? "items-end" : "items-start"
+            }`}
           >
             <div className="text-[10px] text-gray-500">{msg.userName}</div>
             <div
               className={`max-w-[85%] break-words rounded-lg px-2 py-1 text-sm ${
-                msg.userName === userName
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-700 text-white'
+                isOwnMessage(msg)
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-700 text-white"
               }`}
             >
               {msg.message}

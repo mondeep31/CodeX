@@ -33,7 +33,12 @@ export default function TopNav({ language, onLanguageChange }: TopNavProps) {
     }: {
       roomUsers: { id: string; name: string }[];
     }) => {
-      setUsers(Array.isArray(roomUsers) ? roomUsers : []);
+      if (Array.isArray(roomUsers)) {
+        setUsers(roomUsers);
+      } else {
+        console.error("Invalid roomUsers data:", roomUsers);
+        setUsers([]); // Fallback to empty array
+      }
     };
 
     const handleUserLeft = (userId: string) => {
@@ -65,7 +70,11 @@ export default function TopNav({ language, onLanguageChange }: TopNavProps) {
   const executeCode = async () => {
     const now = Date.now();
     if (now - lastExecutionTime.current < EXECUTION_COOLDOWN) {
-      alert(`Please wait ${(EXECUTION_COOLDOWN - (now - lastExecutionTime.current)) / 1000} seconds before executing again`);
+      alert(
+        `Please wait ${
+          (EXECUTION_COOLDOWN - (now - lastExecutionTime.current)) / 1000
+        } seconds before executing again`
+      );
       return;
     }
 
@@ -84,29 +93,34 @@ export default function TopNav({ language, onLanguageChange }: TopNavProps) {
     lastExecutionTime.current = now;
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/execution/run`, {
-        code,
-        language
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/execution/run`,
+        {
+          code,
+          language,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
-      const result = response.data.stdout || response.data.stderr || "No output";
+      const result =
+        response.data.stdout || response.data.stderr || "No output";
       const error = !!response.data.stderr;
 
       socket.emit("execution_result", {
         roomId,
         result,
-        error
+        error,
       });
     } catch (error: any) {
       console.error("Execution error:", error);
       socket.emit("execution_result", {
         roomId,
         result: error.message || "Error executing code",
-        error: true
+        error: true,
       });
     } finally {
       setIsExecuting(false);
@@ -140,8 +154,10 @@ export default function TopNav({ language, onLanguageChange }: TopNavProps) {
           </SelectContent>
         </Select>
 
-        <Button 
-          className={`h-8 ${isExecuting ? 'bg-gray-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded text-sm px-6`}
+        <Button
+          className={`h-8 ${
+            isExecuting ? "bg-gray-600" : "bg-green-600 hover:bg-green-700"
+          } text-white rounded text-sm px-6`}
           onClick={executeCode}
           disabled={isExecuting}
         >

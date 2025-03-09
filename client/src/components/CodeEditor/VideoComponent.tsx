@@ -12,12 +12,21 @@ interface VideoCallProps {
   userName: string;
 }
 
+interface UserInfo {
+  socketId: string;
+  userName: string;
+}
+
 const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
+  const [connectionStatus, setConnectionStatus] =
+    useState<string>("Connecting...");
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [remoteUserName, setRemoteUserName] = useState<string>("");
+
+  // Track remote peer socketId
+  const [remotePeerId, setRemotePeerId] = useState<string>("");
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -52,7 +61,7 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
 
       // Create new RTCPeerConnection
       peerConnectionRef.current = new RTCPeerConnection(servers);
-      
+
       // Add local tracks to the connection
       stream.getTracks().forEach((track) => {
         peerConnectionRef.current?.addTrack(track, stream);
@@ -76,6 +85,7 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
           socket.emit("ice-candidate", {
             candidate: event.candidate,
             roomId,
+            target: remotePeerId, // Send to specific peer
           });
         }
       };
@@ -89,68 +99,96 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
 
       // Log ICE connection state changes
       peerConnectionRef.current.oniceconnectionstatechange = () => {
-        console.log("ICE connection state:", peerConnectionRef.current?.iceConnectionState);
+        console.log(
+          "ICE connection state:",
+          peerConnectionRef.current?.iceConnectionState
+        );
       };
 
+      // Join room with current user name
       socket.emit("join_room", { roomId, userName });
 
-      socket.on("user_joined", async (userId) => {
-        console.log("New user connected:", userId);
-        try {
+      // Listen for new users joining the room
+      socket.on(
+        "user_joined",
+        (data: { socketId: string; userName: string }) => {
+          console.log("New user connected:", data);
+          // Store remote peer info
+          setRemotePeerId(data.socketId);
+          setRemoteUserName(data.userName);
+
           // Create and send offer
-          const offer = await peerConnectionRef.current?.createOffer({
-            offerToReceiveAudio: true,
-            offerToReceiveVideo: true
-          });
-          console.log("Created offer:", offer);
-          if (offer && peerConnectionRef.current) {
-            await peerConnectionRef.current.setLocalDescription(offer);
-            console.log("Set local description");
-            socket.emit("offer", { offer, roomId });
-            console.log("Sent offer");
-          }
-        } catch (error) {
-          console.error("Error creating offer:", error);
+          createAndSendOffer(data.socketId);
+        }
+      );
+
+      // Listen for existing users when joining
+      socket.on("existing_users", (users: UserInfo[]) => {
+        console.log("Existing users:", users);
+        if (users.length > 0) {
+          // Just use the first user for simplicity in this example
+          setRemotePeerId(users[0].socketId);
+          setRemoteUserName(users[0].userName);
         }
       });
 
-      socket.on("offer", async ({ offer, from }) => {
-        console.log("Received offer from:", from);
+      // Handle WebRTC signaling
+      socket.on("offer", async ({ offer, from, fromUserName }) => {
+        console.log("Received offer from:", from, fromUserName);
+        // Set remote user info
+        setRemotePeerId(from);
+        if (fromUserName) {
+          setRemoteUserName(fromUserName);
+        }
+
         try {
           if (!peerConnectionRef.current) {
             console.error("No peer connection available");
             return;
           }
           console.log("Setting remote description from offer");
-          await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+          await peerConnectionRef.current.setRemoteDescription(
+            new RTCSessionDescription(offer)
+          );
           console.log("Creating answer");
           const answer = await peerConnectionRef.current.createAnswer();
           console.log("Setting local description");
           await peerConnectionRef.current.setLocalDescription(answer);
           console.log("Sending answer");
-          socket.emit("answer", { answer, roomId });
+          socket.emit("answer", {
+            answer,
+            roomId,
+            target: from, // Send directly to the peer who sent the offer
+          });
         } catch (error) {
           console.error("Error handling offer:", error);
         }
       });
 
-      socket.on("answer", async ({ answer }) => {
-        console.log("Received answer");
+      socket.on("answer", async ({ answer, from, fromUserName }) => {
+        console.log("Received answer from:", from, fromUserName);
+        if (fromUserName) {
+          setRemoteUserName(fromUserName);
+        }
+
         try {
           if (!peerConnectionRef.current) {
             console.error("No peer connection available");
             return;
           }
           console.log("Setting remote description from answer");
-          await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+          await peerConnectionRef.current.setRemoteDescription(
+            new RTCSessionDescription(answer)
+          );
           console.log("Connection established");
+          setConnectionStatus("Connected");
         } catch (error) {
           console.error("Error setting remote description:", error);
         }
       });
 
-      socket.on("ice-candidate", async ({ candidate }) => {
-        console.log("Received ICE candidate");
+      socket.on("ice-candidate", async ({ candidate, from }) => {
+        console.log("Received ICE candidate from:", from);
         try {
           if (!peerConnectionRef.current) {
             console.error("No peer connection available");
@@ -158,7 +196,9 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
           }
           if (candidate) {
             console.log("Adding ICE candidate");
-            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+            await peerConnectionRef.current.addIceCandidate(
+              new RTCIceCandidate(candidate)
+            );
             console.log("Added ICE candidate successfully");
           }
         } catch (error) {
@@ -166,13 +206,44 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
         }
       });
 
-      socket.on("user_disconnected", () => {
-        setConnectionStatus("Remote user disconnected");
-      });
-
+      socket.on(
+        "user_disconnected",
+        (data: { socketId: string; userName: string }) => {
+          console.log("User disconnected:", data);
+          if (data.socketId === remotePeerId) {
+            setConnectionStatus("Remote user disconnected");
+            setRemoteUserName("");
+            setRemotePeerId("");
+          }
+        }
+      );
     } catch (error) {
       console.error("Error starting call:", error);
       setConnectionStatus("Failed to start call");
+    }
+  };
+
+  // Helper function to create and send an offer
+  const createAndSendOffer = async (targetPeerId: string) => {
+    try {
+      // Create and send offer
+      const offer = await peerConnectionRef.current?.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      });
+      console.log("Created offer:", offer);
+      if (offer && peerConnectionRef.current) {
+        await peerConnectionRef.current.setLocalDescription(offer);
+        console.log("Set local description");
+        socket.emit("offer", {
+          offer,
+          roomId,
+          target: targetPeerId, // Send to specific peer
+        });
+        console.log("Sent offer to:", targetPeerId);
+      }
+    } catch (error) {
+      console.error("Error creating offer:", error);
     }
   };
 
@@ -186,25 +257,15 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
       if (peerConnectionRef.current) {
         peerConnectionRef.current.close();
       }
-    };
-  }, [roomId]);
-
-  useEffect(() => {
-    socket.on("user_connected", (data: { userName: string }) => {
-      setRemoteUserName(data.userName);
-      setConnectionStatus("Connected");
-    });
-
-    socket.on("user_disconnected", () => {
-      setRemoteUserName("");
-      setConnectionStatus("Waiting for peer...");
-    });
-
-    return () => {
-      socket.off("user_connected");
+      // Clean up socket listeners
+      socket.off("user_joined");
+      socket.off("existing_users");
+      socket.off("offer");
+      socket.off("answer");
+      socket.off("ice-candidate");
       socket.off("user_disconnected");
     };
-  }, []);
+  }, [roomId]);
 
   const toggleAudio = () => {
     if (localStream) {
@@ -237,7 +298,9 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
             muted
             className="w-full aspect-video bg-black rounded-lg"
           />
-          <div className="absolute bottom-2 left-2 text-white text-sm">You ({userName})</div>
+          <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-0.5 rounded">
+            You ({userName})
+          </div>
         </div>
         <div className="relative w-full">
           <video
@@ -246,7 +309,7 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
             playsInline
             className="w-full aspect-video bg-black rounded-lg"
           />
-          <div className="absolute bottom-2 left-2 text-white text-sm">
+          <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-0.5 rounded">
             {remoteUserName ? remoteUserName : "Waiting for peer..."}
           </div>
         </div>
@@ -255,9 +318,9 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
         <button
           onClick={toggleAudio}
           className={`p-2.5 rounded-full transition-all duration-200 hover:scale-110 ${
-            isMuted 
-              ? 'bg-red-500 hover:bg-red-600' 
-              : 'bg-green-600 hover:bg-green-700'
+            isMuted
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-green-600 hover:bg-green-700"
           }`}
         >
           {isMuted ? (
@@ -269,9 +332,9 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
         <button
           onClick={toggleVideo}
           className={`p-2.5 rounded-full transition-all duration-200 hover:scale-110 ${
-            isVideoOff 
-              ? 'bg-red-500 hover:bg-red-600' 
-              : 'bg-green-600 hover:bg-green-700'
+            isVideoOff
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-green-600 hover:bg-green-700"
           }`}
         >
           {isVideoOff ? (
@@ -280,7 +343,9 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
             <FaVideo className="text-white w-3.5 h-3.5" />
           )}
         </button>
-        <div className="text-sm font-medium text-gray-400">{connectionStatus}</div>
+        <div className="text-sm font-medium text-gray-400">
+          {connectionStatus}
+        </div>
       </div>
     </div>
   );

@@ -4,13 +4,14 @@ import Editor from "@/components/CodeEditor/Editor";
 import OutputBox from "@/components/CodeEditor/OutputBox";
 import VideoChat from "@/components/CodeEditor/VideoChat";
 import RoomInfo from "@/components/CodeEditor/RoomInfo";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 export default function EditorPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const [language, setLanguage] = useState("javascript");
-  const userName = localStorage.getItem("userName") || "Anonymous";
+  const location = useLocation();
+  const { userName } = location.state || {};
 
   if (!roomId) {
     navigate("/");
@@ -24,10 +25,10 @@ export default function EditorPage() {
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
           <div className="flex-1">
-            <Editor 
-              roomId={roomId} 
-              language={language} 
-              onLanguageChange={setLanguage} 
+            <Editor
+              roomId={roomId}
+              language={language}
+              onLanguageChange={setLanguage}
             />
           </div>
           <div className="h-40">
