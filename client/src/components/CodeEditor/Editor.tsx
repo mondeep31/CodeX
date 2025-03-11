@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Editor } from "@monaco-editor/react";
 import socket from "@/socket";
-import { debounce } from "lodash";
 
 interface CodeEditorProps {
   roomId?: string;
@@ -12,41 +11,36 @@ interface CodeEditorProps {
 const TEMPLATE_CODES: Record<string, string> = {
   java: `public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+        System.out.println("Hello, World! (java)");
     }
 }`,
   cpp: `#include <iostream>
 using namespace std;
 
 int main() {
-    cout << "Hello, World!" << endl;
+    cout << "Hello, World!(cpp)" << endl;
     return 0;
 }`,
   c: `#include <stdio.h>
 
 int main() {
-    printf("Hello, World!\\n");
+    printf("Hello, World!(c)\\n");
     return 0;
 }`,
-  python: `print("Hello, World!")`,
+  python: `print("Hello, World!(python)")`,
 };
 
 const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
   const editorRef = useRef<any>(null);
   const [editorValue, setEditorValue] = useState(TEMPLATE_CODES[language]);
-  const isUpdating = useRef(false);
 
   // Handle code changes from socket
   useEffect(() => {
     if (!roomId) return;
 
     const handleCodeChange = (newCode: string) => {
-      if (!isUpdating.current) {
-        isUpdating.current = true;
+      if (newCode !== editorValue) {
         setEditorValue(newCode);
-        setTimeout(() => {
-          isUpdating.current = false;
-        }, 100);
       }
     };
 
@@ -56,22 +50,16 @@ const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
     return () => {
       socket.off("receive_code", handleCodeChange);
     };
-  }, [roomId]);
+  }, [roomId, editorValue]);
 
   // Handle language changes
   useEffect(() => {
-    if (!isUpdating.current) {
-      isUpdating.current = true;
-      const newCode = TEMPLATE_CODES[language];
-      setEditorValue(newCode);
+    if (TEMPLATE_CODES[language] !== editorValue) {
+      setEditorValue(TEMPLATE_CODES[language]);
 
       if (roomId) {
-        socket.emit("send_code", { roomId, code: newCode });
+        socket.emit("send_code", { roomId, code: TEMPLATE_CODES[language] });
       }
-
-      setTimeout(() => {
-        isUpdating.current = false;
-      }, 100);
     }
   }, [language, roomId]);
 
@@ -80,16 +68,12 @@ const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
     editorRef.current = editor;
   };
 
-  const handleChange = debounce((newValue: string | undefined) => {
-    if (newValue !== undefined && roomId && !isUpdating.current) {
-      isUpdating.current = true;
+  const handleChange = (newValue: string | undefined) => {
+    if (newValue !== undefined && roomId && newValue !== editorValue) {
       setEditorValue(newValue);
       socket.emit("send_code", { roomId, code: newValue });
-      setTimeout(() => {
-        isUpdating.current = false;
-      }, 100);
     }
-  }, 300);
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -107,7 +91,6 @@ const CodeEditor = ({ roomId, language }: CodeEditorProps) => {
             fontSize: 14,
             wordWrap: "on",
             automaticLayout: true,
-            readOnly: isUpdating.current,
           }}
         />
       </div>

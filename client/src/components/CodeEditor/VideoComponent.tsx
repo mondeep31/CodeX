@@ -290,6 +290,17 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
   return (
     <div>
       <div className="flex flex-col gap-1">
+      <div className="relative w-full">
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            className="w-full aspect-video bg-black rounded-lg"
+          />
+          <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-0.5 rounded">
+            {remoteUserName ? remoteUserName : "Waiting for peer..."}
+          </div>
+        </div>
         <div className="relative w-full">
           <video
             ref={localVideoRef}
@@ -302,17 +313,7 @@ const VideoCallComponent = ({ roomId, userName }: VideoCallProps) => {
             You ({userName})
           </div>
         </div>
-        <div className="relative w-full">
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            className="w-full aspect-video bg-black rounded-lg"
-          />
-          <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-0.5 rounded">
-            {remoteUserName ? remoteUserName : "Waiting for peer..."}
-          </div>
-        </div>
+
       </div>
       <div className="flex justify-center items-center gap-4 p-3 border-t border-gray-700 bg-[#1C1C1C]">
         <button
