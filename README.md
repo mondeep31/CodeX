@@ -1,6 +1,6 @@
 # CodeX - Collaborative Coding Platform
 
-CodeX is a real-time collaborative coding platform that allows users to create and join coding sessions, share code, and communicate via chat and video calls. This application is built using React for the frontend and Socket.IO for real-time communication.
+CodeX is a real-time collaborative coding platform that allows users to create and join coding sessions, share code, and communicate via chat and video calls. This application is built using React for the frontend, Socket.IO for real-time communication, WebRTC for video communication.
 
 ## Features
 
@@ -13,8 +13,7 @@ CodeX is a real-time collaborative coding platform that allows users to create a
 
 - **Frontend**: React, TypeScript, Tailwind CSS
 - **Backend**: Node.js, Express, Socket.IO
-- **Database**: (If applicable, mention the database used)
-- **APIs**: (If applicable, mention any external APIs used)
+- **Protocol**: WebRTC
 
 ## Getting Started
 
@@ -61,16 +60,6 @@ CodeX is a real-time collaborative coding platform that allows users to create a
 2. **Joining a Room**: Users can join an existing room by entering the room ID and their username.
 3. **Collaborating**: Once in a room, users can share code, chat, and initiate video calls.
 4. **Executing Code**: Users can write code in the editor and execute it to see the output.
-
-## Code Structure
-
-- `client/`: Contains the frontend codebase.
-  - `src/components/`: Contains React components for the application.
-  - `src/socket.js`: Socket.IO client setup for real-time communication.
-- `server/`: Contains the backend codebase.
-  - `controller/`: Contains socket event handlers and business logic.
-  - `config/`: Configuration files for the server.
-  - `types/`: TypeScript type definitions.
 
 ## Contributing
 
